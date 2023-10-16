@@ -227,13 +227,13 @@ def fileTypeCheck(filePath):
             if os.path.exists(filePath[:-3] + 'AQS') or os.path.exists(filePath[:-3] + 'aqs'):
                 return 15, filePath     #Bruker WinNMR suspected
             with open(filePath, 'r') as f:
-                check = int(np.fromfile(f, np.float32, 1))
+                check = int(np.fromfile(f, np.float64, 1))
             if check == 0:
                 return 8, filePath  # Suspected NMRpipe format
             return 4, filePath # SIMPSON
         if filename.endswith(('.ft', '.ft1', '.ft2', '.ft3', '.ft4')):
             with open(filePath, 'r') as f:
-                check = int(np.fromfile(f, np.float32, 1))
+                check = int(np.fromfile(f, np.float64, 1))
             if check == 0:
                 return 8, filePath  # Suspected NMRpipe format
         elif filename.lower().endswith('.json'):
@@ -386,7 +386,7 @@ def loadVarianFile(filePath):
         SizeTD2 = npoints
         SizeTD1 = nblocks * ntraces
         if fidfloat:
-            bitType = ['>f', np.float32, 7] # [bitorder, read as, number of elements in nbheader]
+            bitType = ['>f', np.float64, 7] # [bitorder, read as, number of elements in nbheader]
         else:
             if fid32:
                 bitType = ['>l', np.int32, 7]
@@ -441,7 +441,7 @@ def loadPipe(filePath):
         SpectrumClass object of the loaded data
     """
     with open(filePath, 'r') as f:
-        header = np.fromfile(f, np.float32, 512)
+        header = np.fromfile(f, np.float64, 512)
     NDIM = int(header[9])
     SIZE = [int(header[32]), int(header[15]), int(header[219]), int(header[99])]
     quadFlag = [int(header[54]), int(header[51]), int(header[55]), int(header[56])] #0 complex, 1 real
@@ -476,7 +476,7 @@ def loadPipe(filePath):
     data = []
     for file in files: #Load all the data from the files
         with open(file, 'r') as f:
-            data.append(np.fromfile(f, np.float32, TotP))
+            data.append(np.fromfile(f, np.float64, TotP))
     for i, _ in enumerate(data): #Reshape all the data
         if NDIM > 1 and cubeFlag == 0 and pipeFlag == 0: #Reshape 2D sets if needed
             data[i] = np.reshape(data[i], (SIZE[2], int(TotP/SIZE[2])))
@@ -746,7 +746,7 @@ def saveJSONFile(filePath, spectrum):
     struct['sw'] = list(spectrum.sw)
     struct['spec'] = list(1.0 * np.array(spectrum.spec))
     struct['wholeEcho'] = list(1.0 * np.array(spectrum.wholeEcho))
-    struct['ref'] = np.array(spectrum.ref, dtype=np.float).tolist()
+    struct['ref'] = np.array(spectrum.ref, dtype=np.float64).tolist()
     struct['history'] = spectrum.history
     struct['metaData'] = spectrum.metaData
     if spectrum.dFilter is not None:
@@ -837,7 +837,7 @@ def saveMatlabFile(filePath, spectrum, name='spectrum'):
     struct['sw'] = spectrum.sw
     struct['spec'] = spectrum.spec
     struct['wholeEcho'] = spectrum.wholeEcho
-    struct['ref'] = np.array(spectrum.ref, dtype=np.float)
+    struct['ref'] = np.array(spectrum.ref, dtype=np.float64)
     struct['history'] = spectrum.history
     struct['xaxArray'] = spectrum.xaxArray
     struct['metaData'] = spectrum.metaData
@@ -1159,7 +1159,7 @@ def loadBrukerTopspin(filePath):
     FREQ = [x['SFO1'] * 1e6 for x in pars]
     SW = [x['SW']*x['SFO1'] for x in pars]
     REF = [x['O1'] for x in pars]
-    DtypeA = [np.dtype(np.int32), np.dtype(np.float32), np.dtype(np.float64)][pars[0]['DTYPA']] #The byte orders that is used
+    DtypeA = [np.dtype(np.int32), np.dtype(np.float64), np.dtype(np.float64)][pars[0]['DTYPA']] #The byte orders that is used
     DtypeA = DtypeA.newbyteorder(['L', 'B'][pars[0]['BYTORDA']]) #The byte orders that is used 'L' =little endian, 'B' = big endian
     REF = list(- np.array(REF) + np.array(FREQ))
     dFilter = getBrukerFilter(pars[0])
@@ -1304,11 +1304,11 @@ def loadBrukerWinNMR(filePath):
         spec = False
     if spec: #If spec loaded
         with open(base + names[3], "rb") as f:
-            rawR = np.fromfile(f, np.float32, SIZE)
+            rawR = np.fromfile(f, np.float64, SIZE)
         rawR = rawR.newbyteorder(ByteOrder) #Load with right byte order
         if present[4]:
             with open(base + names[4], "rb") as f:
-                rawI = np.fromfile(f, np.float32, SIZE)
+                rawI = np.fromfile(f, np.float64, SIZE)
             rawI = rawI.newbyteorder(ByteOrder) #Load with right byte order
             ComplexData = rawR - 1j* rawI
         else:
@@ -1316,7 +1316,7 @@ def loadBrukerWinNMR(filePath):
         ComplexData = np.flipud(ComplexData)
     else: #Load fid
         with open(base + names[2], "rb") as f:
-            raw = np.fromfile(f, np.float32, SIZE)
+            raw = np.fromfile(f, np.float64, SIZE)
         raw = raw.newbyteorder(ByteOrder) #Load with right byte order
         ComplexData = np.array(raw[0:len(raw):2]) + 1j * np.array(raw[1:len(raw):2])
     masterData = sc.Spectrum(ComplexData, (filePath, None), [FREQ], [SW], spec=[spec], ref=[REF])
@@ -1367,7 +1367,7 @@ def loadBrukerSpectrum(filePath):
     if 'NC_proc' in pars[0]: # Set intensity scaling parameter
         SCALE = 2**pars[0]['NC_proc']
     try:
-        DtypeP = [np.dtype(np.int32), np.dtype(np.float32), np.dtype(np.float64)][pars[0]['DTYPP']] #The byte orders that is used
+        DtypeP = [np.dtype(np.int32), np.dtype(np.float64), np.dtype(np.float64)][pars[0]['DTYPP']] #The byte orders that is used
         DtypeP = DtypeP.newbyteorder(['L', 'B'][pars[0]['BYTORDP']])
     except KeyError:
         DtypeP = np.dtype(np.int32)         # When these parameters are not available the defaults are used
@@ -1633,7 +1633,7 @@ def loadMagritek(filePath):
             sidefreq1 = -np.floor(sizeTD1 / 2) / sizeTD1 * sw1  # freqeuency of last point on axis
             ref1 = sidefreq1 + freq - lastfreq1
         with open(Dir + os.path.sep + File, 'rb') as f:
-            raw = np.fromfile(f, np.float32)
+            raw = np.fromfile(f, np.float64)
         Data = raw[-2 * sizeTD2 * sizeTD1::]
         ComplexData = Data[0:Data.shape[0]:2] - 1j * Data[1:Data.shape[0]:2]
         ComplexData = ComplexData.reshape((sizeTD1, sizeTD2))
@@ -1642,7 +1642,7 @@ def loadMagritek(filePath):
     elif Files1D:
         File = 'data.1d'
         with open(Dir + os.path.sep + File, 'rb') as f:
-            raw = np.fromfile(f, np.float32)
+            raw = np.fromfile(f, np.float64)
         Data = raw[-2 * sizeTD2::]
         ComplexData = Data[0:Data.shape[0]:2] - 1j * Data[1:Data.shape[0]:2]
         ComplexData[0] *= 2
@@ -1765,7 +1765,7 @@ def loadSimpsonFile(filePath):
         negative = Bytes[:, 3] >= 128
         e = exponent - 127
         m = np.abs(mantissa) / np.float64(1 << 23)
-        data = np.float32((-1)**negative * np.ldexp(m, e))
+        data = np.float64((-1)**negative * np.ldexp(m, e))
         data = data.view('complex64')
     if NI != 1:  # 2D data, reshape to NI, NP
         data = data.reshape(int(NI), -1)
@@ -2152,7 +2152,7 @@ def loadBrukerEPR(filePath):
             numYPoints = int(row[1])
             dataIs2D = True
     with open(filePath + '.spc', mode='rb') as f:
-        data = np.fromfile(f, np.float32, numOfPoints)
+        data = np.fromfile(f, np.float64, numOfPoints)
     if dataIs2D:
         data = np.reshape(data, (numYPoints, numXPoints))
         masterData = sc.Spectrum(data, (filePath, None), [centerField, centerField], [sweepWidth, sweepWidth], spec=[False, True], ref=[None,0])

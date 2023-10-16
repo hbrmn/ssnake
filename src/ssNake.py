@@ -4903,7 +4903,7 @@ class regionWindowStep(wc.ToolWindow):
 
     def apply(self, maximum, minimum, newSpec, step):
         pass
-
+    
 ############################################################
 
 
@@ -7661,7 +7661,7 @@ class dipolarDistanceWindow(wc.ToolWindow):
         # Second-moment group
         self.M2Group = QtWidgets.QGroupBox(u"Second Moments [10⁶ rad²/s²]:")
         self.M2Frame = QtWidgets.QGridLayout()
-
+        
         self.M2hetGO = QtWidgets.QPushButton("Go")
         self.M2Frame.addWidget(self.M2hetGO, 1, 0)
         self.M2hetGO.clicked.connect(lambda: self.Calc(2))
@@ -7673,7 +7673,7 @@ class dipolarDistanceWindow(wc.ToolWindow):
         self.M2.setMinimumWidth(100)
         self.M2Frame.addWidget(self.M2, 1, 1)
         # self.HetroWidgets = [self.M2hetGO,self.M2hetlabel,self.M2het]
-
+        
         # self.M2homGO = QtWidgets.QPushButton("Go")
         # self.M2Frame.addWidget(self.M2homGO, 4, 0)
         # self.M2homGO.clicked.connect(lambda: self.Calc(3))
@@ -7685,7 +7685,7 @@ class dipolarDistanceWindow(wc.ToolWindow):
         # self.M2hom.setMinimumWidth(100)
         # self.M2Frame.addWidget(self.M2hom, 4, 1)
         # self.HomoWidgets = [self.M2homGO,self.noqplabel,self.M2homlabel,self.M2hom]
-
+        
         self.M2SEDGO = QtWidgets.QPushButton("Go")
         self.M2Frame.addWidget(self.M2SEDGO, 6, 0)
         self.M2SEDGO.clicked.connect(lambda: self.Calc(3))
@@ -7694,7 +7694,7 @@ class dipolarDistanceWindow(wc.ToolWindow):
         self.M2SED = wc.QLineEdit("0")
         self.M2SED.setMinimumWidth(100)
         self.M2Frame.addWidget(self.M2SED, 6, 1)
-
+        
         self.grid.addWidget(self.M2Group, 9, 0, 2, 2)
         self.M2Group.setLayout(self.M2Frame)
 
@@ -7729,15 +7729,15 @@ class dipolarDistanceWindow(wc.ToolWindow):
             self.M2SEDGO.hide()
             self.M2SEDlabel.hide()
             self.M2SED.hide()
-
+    
     def spin1Changed(self):
         self.gamma1Drop.setCurrentIndex(0)
         self.checkHomoHetro()
-
+        
     def spin2Changed(self):
         self.gamma2Drop.setCurrentIndex(0)
         self.checkHomoHetro()
-
+            
     def gamma1Changed(self):
         self.gamma1Drop.setCurrentIndex(0)
         self.checkHomoHetro()
@@ -7782,20 +7782,20 @@ class dipolarDistanceWindow(wc.ToolWindow):
                 raise SsnakeException("Dipolar Distance: Invalid input in D")
         if Type == 2:  # Heteronuclear second-moment as input
             try:
-                M2 = abs(float(safeEval(self.M2.text(), Type='FI')))
+                M2 = abs(float(safeEval(self.M2.text(), Type='FI'))) 
             except Exception:
                 raise SsnakeException("Dipolar Distance: Invalid input in M2")
 
         if Type == 3: # Homonuclear second-moment from spin echo decay
             try:
-                M2SED = abs(float(safeEval(self.M2SED.text(), Type='FI')))
+                M2SED = abs(float(safeEval(self.M2SED.text(), Type='FI'))) 
             except Exception:
                 raise SsnakeException("Dipolar Distance: Invalid input in M2")
-
+                
         hbar = 1.054573e-34
         def wm(m):
             return (1/2) * np.sqrt(I2 * (I2 + 1) - m * (m + 1))
-
+        
         M2_Factor = (2/(9*(2*I2+1))) * (1 + 4*wm(-1/2)**2 + 4*wm(-1/2)**4 + wm(1/2)**4)
 
         if Type == 0:
@@ -7812,12 +7812,12 @@ class dipolarDistanceWindow(wc.ToolWindow):
                     M2SED /= 1e6
                     M2 = abs((3/5) * 1e-14 * gamma1**4 * I2 * (I2 + 1)* hbar**2 / ((r * 10**-10) **6))
                     M2 /= 1e6
-
+                    
                 else:
                     M2 = abs((4/15) * 1e-14 * gamma1**2 * gamma2**2 * I2 * (I2 + 1) * hbar**2 / ((r * 10**-10) **6))
                     M2 /= 1e6
                     M2SED = 0
-
+                    
         if Type == 1:
             if D == 0.0:
                 r = np.inf
@@ -7832,12 +7832,12 @@ class dipolarDistanceWindow(wc.ToolWindow):
                     M2 = abs((3/5) * 1e-14 * gamma1**4 * I2 * (I2 + 1)* hbar**2 / ((r * 10**-10) **6))
                     M2 /= 1e6
                     #factor 4/5 results after powder averaging
-
+                    
                 else:
                     M2 = abs((4/15) * 1e-14 * gamma1**2 * gamma2**2 * I2 * (I2 + 1) * hbar**2 / ((r * 10**-10) **6))
                     M2 /= 1e6
                     M2SED = 0.0
-
+                    
         if Type == 2:
             if M2 == 0:
                 r = np.inf
@@ -7859,7 +7859,7 @@ class dipolarDistanceWindow(wc.ToolWindow):
                     D = abs(- 1e-7 * gamma1 * gamma2 * hbar / (r * 10**-10) **3 / (2 * np.pi))
                     D /= 1000
                     M2SED = 0.0
-
+                
         if Type == 3:
             if M2SED == 0:
                 r = np.inf
@@ -7878,7 +7878,7 @@ class dipolarDistanceWindow(wc.ToolWindow):
                 else:
                     raise SsnakeException("Choose two identical nuclei.")
             # else:
-
+                
         self.dipolar.setText('%#.5g' % D)
         self.distance.setText('%#.5g' % r)
         self.M2.setText('%#.5g' % M2)
@@ -7917,11 +7917,11 @@ class tempCalWindow(QtWidgets.QWidget):
                   lambda Temp: (Temp - 466.5) / -102.0,
                   'absShift',None,None,'Ammann et al., JMR, 46, 319 (1982)']
     PBNO3 = [143, 423,
-             lambda Delta, Delta0, T0: (Delta0 - Delta) / 0.753 + T0 ,
+             lambda Delta, Delta0, T0: (Delta0 - Delta) / 0.753 + T0 , 
              lambda T, Delta0, T0: (T0 - T) * 0.753 + Delta0 ,
              'relShift','-3473','293','Bielecki et al., JMR, 116, 215 (1995)']
     KBR = [170, 320,
-             lambda Delta, Delta0, T0: (Delta0 - Delta) / 0.0250 + T0 ,
+             lambda Delta, Delta0, T0: (Delta0 - Delta) / 0.0250 + T0 , 
              lambda T, Delta0, T0: (T0 - T) * 0.0250 + Delta0 ,
              'relShift','0','293','Thurber et al., JMR, 196, 84 (2009)']
     DEFINITIONS = [METHANOL, ETH_GLYCOL, PBNO3 ,KBR]
